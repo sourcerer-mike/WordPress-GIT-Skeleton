@@ -25,3 +25,5 @@ register_theme_directory(__DIR__ . '/themes');
 
 Now your themes and plugins folder is outside of WordPress and can be
 under version control without having the whole of WP in it.
+You can even use submodules for the plugins to have a slim repo and be
+up to date within  a single `git submodule foreach git pull`.
