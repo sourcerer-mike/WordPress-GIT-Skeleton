@@ -1,4 +1,17 @@
 <?php
+/**
+ * Find this line in your wp-config.php:
+ *
+ * ```
+ * require_once(ABSPATH . 'wp-settings.php');
+ * ```
+ *
+ * After that you need to place
+ *
+ * ```
+ * include_once __DIR__ . '/bootstrap.php';
+ * ```
+ */
 
 /*
  * }}} Things a rookie understands. {{{
@@ -21,5 +34,7 @@ $websiteUrl = $protocol . '://'
 
 // rewrite plugin
 define('WP_PLUGIN_URL', $websiteUrl . 'plugins');
-define('WP_PLUGIN_DIR', __DIR__ . '/plugins');
+define('WP_PLUGIN_DIR', WP_CONTENT_DIR . '/plugins');
 define('PLUGINDIR', WP_PLUGIN_DIR);
+
+$wp_theme_directories[] = realpath(__DIR__ . '/public') . '/wp-content/local-themes';
