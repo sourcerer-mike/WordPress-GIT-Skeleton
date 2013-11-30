@@ -6,7 +6,7 @@
  * require_once(ABSPATH . 'wp-settings.php');
  * ```
  *
- * After that you need to place
+ * Before that you need to place
  *
  * ```
  * include_once __DIR__ . '/bootstrap.php';
