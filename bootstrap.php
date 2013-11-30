@@ -34,7 +34,7 @@ $websiteUrl = $protocol . '://'
 
 // rewrite plugin
 define('WP_PLUGIN_URL', $websiteUrl . 'plugins');
-define('WP_PLUGIN_DIR', WP_CONTENT_DIR . '/plugins');
+define('WP_PLUGIN_DIR', realpath(__DIR__ . '/public') . '/plugins');
 define('PLUGINDIR', WP_PLUGIN_DIR);
 
 $wp_theme_directories[] = realpath(__DIR__ . '/public') . '/wp-content/local-themes';
