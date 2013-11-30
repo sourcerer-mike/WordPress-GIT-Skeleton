@@ -18,9 +18,6 @@ include_once __DIR__ . '/bootstrap.php';
 
 /** Sets up WordPress vars and included files. */
 require_once(ABSPATH . 'wp-settings.php');
-
-// additional theme folder
-register_theme_directory(__DIR__ . '/themes');
 ```
 
 Now your themes and plugins folder is outside of WordPress and can be
