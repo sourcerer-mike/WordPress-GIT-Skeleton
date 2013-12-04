@@ -6,6 +6,12 @@ cd YOUR_DIRECTORY
 ```
 
 - Install WP
+- Run the init script
+
+```
+php init.php
+``` 
+
 - Put the wp-config one level higher (root of this repo)
 
 ```
