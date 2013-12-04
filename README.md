@@ -10,6 +10,11 @@ cd ..
 
 - Install WP
 - Put the wp-config one level higher (root of this repo)
+
+```
+mv public/wp-config.php .
+```
+
 - Change it to this at the end:
 
 ```
