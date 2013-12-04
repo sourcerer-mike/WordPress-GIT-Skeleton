@@ -1,11 +1,8 @@
-- Clone this repo
-- Get WordPress
+- Clone this repo recursive
 
 ```
-git clone https://github.com/WordPress/WordPress.git public
-cd public
-git checkout 3.7.1
-cd ..
+git clone --recursive https://github.com/sourcerer-mike/WordPress-GIT-Skeleton.git YOUR_DIRECTORY
+cd YOUR_DIRECTORY
 ```
 
 - Install WP
