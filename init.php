@@ -14,22 +14,8 @@
 
 class InitCommand
 {
-    const ARG_PLUGINS = 'plugins';
-
-    const ARG_THEMES = 'themes';
-
-    const ARG_WORDPRESS = 'wordpress';
-
-    public $conf = array();
-
-
     public function __construct()
     {
-        $this->conf = array(
-            static::ARG_THEMES    => 'themes',
-            static::ARG_PLUGINS   => 'plugins',
-            static::ARG_WORDPRESS => 'public',
-        );
     }
 
 
@@ -40,68 +26,9 @@ class InitCommand
     }
 
 
-    /**
-     * Retrieve a specific config or everything.
-     *
-     * @param null|string $node Everything when `null` and one when path given.
-     *
-     * @return array|string
-     */
-    public function getConfig($node = null)
-    {
-        if (null == $node)
-        { // $node is null: create
-            return $this->conf;
-        }
-
-        if (!isset($this->conf[$node]))
-        { // not set: ...
-            return null;
-        }
-
-        return $this->conf[$node];
-    }
-
-
-    /**
-     * .
-     *
-     * @return bool
-     */
-    public function getErrors()
-    {
-        $err = array();
-
-        if (!$this->_validateDirectory($this->getConfig(static::ARG_PLUGINS)))
-        {
-            $err[] = "Plugin directory can not be accessed.";
-        }
-
-        if (!$this->_validateDirectory($this->getConfig(static::ARG_THEMES)))
-        {
-            $err[] = "Theme directory can not be accessed.";
-        }
-
-        if (!$this->_validateDirectory($this->getConfig(static::ARG_WORDPRESS)))
-        {
-            $err[] = "Wordpress directory can not be accessed.";
-        }
-
-        return $err;
-    }
-
 
     public function indexAction()
     {
-        $errors = $this->getErrors();
-
-        if (!empty($errors))
-        {
-            $this->log($errors);
-
-            return;
-        }
-
         $this->makeSymlinksAction();
     }
 
@@ -136,15 +63,7 @@ class InitCommand
 
     public function makeSymlinksAction()
     {
-        $wpDir  = $this->getConfig(static::ARG_WORDPRESS) . DIRECTORY_SEPARATOR;
-        $target = $this->getConfig(static::ARG_THEMES);
-        $link   = $wpDir . 'wp-content/local-themes';
-
-        $this->_symlink($target, $link);
-
-        $target = $this->getConfig(static::ARG_PLUGINS);
-        $link = $wpDir . 'wp-content/local-plugins';
-        $this->_symlink($target, $link);
+        $this->_symlink('wp-content', 'public/wp-content');
     }
 
 
@@ -166,10 +85,12 @@ class InitCommand
             return;
         }
 
-        symlink(
+        $x = symlink(
             realpath($target),
             $link
         );
+
+        var_dump($x);
     }
 
 
