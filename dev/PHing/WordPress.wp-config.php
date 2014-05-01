@@ -22,6 +22,12 @@ define('AUTOMATIC_UPDATER_DISABLED', true);
 // have a media trash available - just like the post trash
 define('MEDIA_TRASH', true);
 
+// speed up a bit with lesser revisions
+define('WP_POST_REVISIONS', 10);
+
+// directly make changes / install plugins on the filesystem
+define('FS_METHOD', 'direct');
+
 /**  MySQL Einstellungen - diese Angaben bekommst du von deinem Webhoster. */
 /**  Ersetze database_name_here mit dem Namen der Datenbank, die du verwenden m�chtest. */
 define('DB_NAME', '${WordPress.config.databaseName}');
