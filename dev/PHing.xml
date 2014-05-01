@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<project name="WordPress Instance" default="WordPress" basedir="." description="Get WordPress">
+
+    <property name="application.cacheDir" value="var/cache/PHing"/>
+
+    <if>
+        <available file="${phing.dir}/PHing.ini"/>
+        <then>
+            <property file="${phing.dir}/PHing.ini"/>
+        </then>
+    </if>
+    <if>
+        <available file="${phing.dir}/PHing.local.ini"/>
+        <then>
+            <property file="${phing.dir}/PHing.local.ini" override="true"/>
+        </then>
+    </if>
+
+    <target name="prepare">
+        <mkdir dir="${application.cacheDir}" mode="755"/>
+    </target>
+
+    <target name="WordPress.prepare" hidden="true" depends="prepare">
+        <propertyprompt promptText="What is the Download URL (zip)?" propertyName="WordPress.URL"
+                        useExistingValue="true"/>
+        <php returnProperty="WordPress.URL.BaseName" expression="basename('${WordPress.URL}')"/>
+
+        <property name="WordPress.cacheDir" value="${application.cacheDir}/WordPress"/>
+        <mkdir dir="${WordPress.cacheDir}"/>
+        <property name="WordPress.cacheFile" value="${WordPress.cacheDir}/${WordPress.URL.BaseName}"/>
+
+        <property name="WordPress.destinationDir" value="${project.basedir}/WordPress"/>
+        <mkdir dir="${WordPress.destinationDir}"/>
+    </target>
+
+    <target name="WordPress" depends="WordPress.prepare">
+
+        <!-- Download WordPress -->
+        <if>
+            <not>
+                <available file="${WordPress.cacheFile}"/>
+            </not>
+            <then>
+                <httpget dir="${WordPress.cacheDir}" url="${WordPress.URL}"/>
+            </then>
+            <else>
+                <echo message="Use cached ${WordPress.URL.BaseName}" level="info"/>
+            </else>
+        </if>
+
+        <!-- Extract WordPress -->
+        <if>
+            <not>
+                <available file="${WordPress.cacheDir}/wordpress"/>
+            </not>
+            <then>
+                <unzip todir="${WordPress.cacheDir}" file="${WordPress.cacheFile}"/>
+            </then>
+        </if>
+
+        <!-- Copy cached WordPress -->
+        <copy todir="${WordPress.destinationDir}">
+            <fileset dir="${WordPress.cacheDir}/wordpress">
+                <include name="**"/>
+                <exclude name="liesmich.html"/>
+                <exclude name="readme.html"/>
+                <exclude name="wp-content/plugins/akismet/"/>
+                <exclude name="wp-content/plugins/hello.php"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="WordPress.clear" depends="WordPress.prepare">
+        <delete dir="${WordPress.cacheDir}" />
+
+        <input message="Want to delete the whole WordPress" propertyName="WordPress.deleteAll" validArgs="y,n"
+               defaultValue="n" promptChar="?"/>
+        <delete dir="${WordPress.destinationDir}"/>
+    </target>
+</project>
