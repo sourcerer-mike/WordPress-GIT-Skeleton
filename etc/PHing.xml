@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
 <project name="WordPress Instance" default="WordPress" basedir="." description="Get WordPress">
 
+    <tstamp />
+
     <property name="application.cacheDir" value="var/cache/PHing"/>
 
     <if>
@@ -17,6 +19,8 @@
     </if>
 
     <target name="prepare">
+        <exec command="whoami" returnProperty="user.name" />
+
         <mkdir dir="${application.cacheDir}" mode="755"/>
     </target>
 
@@ -90,6 +94,7 @@
                 <exclude name="wp-content/plugins/hello.php"/>
             </fileset>
         </copy>
+        <delete dir="${WordPress.cacheDir}/wordpress" includeemptydirs="true" />
 
         <!-- Hardening WordPress -->
         <phingcall target="WordPress.secure" />
@@ -115,7 +120,7 @@
 
         <chmod mode="1750" file="${WordPress.destinationDir}/wp-admin" />
         <chmod mode="1750" file="${WordPress.destinationDir}/wp-includes" />
-        <chmod mode="0770" file="${WordPress.destinationDir}/wp-content" />
+        <chmod mode="0750" file="${WordPress.destinationDir}/wp-content" />
 
         <copy file="${phing.dir}/PHing/WordPress.htaccess" tofile="${WordPress.destinationDir}/.htaccess">
             <filterchain>
@@ -150,5 +155,24 @@
                       level="warning"/>
             </else>
         </if>
+    </target>
+
+    <target name="WordPress.migrate" description="WordPress Database Migration" depends="WordPress.prepare">
+
+        <property name="WordPress.dbdeploy.deployfile"
+                  value="${application.cacheDir}/WordPress/deploy-${DSTAMP}${TSTAMP}.sql" />
+
+        <dbdeploy url="mysql:host=${WordPress.config.databaseHost};dbname=${WordPress.config.databaseName}"
+                  userid="${WordPress.config.databaseUser}"
+                  password="${WordPress.config.databasePass}"
+                  dir="${project.basedir}/etc/PHing/WordPress/dbdeltas"
+                  outputfile="${WordPress.dbdeploy.deployfile}"
+                  appliedBy="${user.name}"/>
+
+        <echo message="Apply changes... " />
+        <exec
+                command="${progs.mysql} -h${WordPress.config.databaseHost} -u${WordPress.config.databaseUser} -p${WordPress.config.databasePass} ${WordPress.config.databaseName} &lt; ${WordPress.dbdeploy.deployfile}"
+                dir="${project.basedir}"
+                checkreturn="true" />
     </target>
 </project>

@@ -1,0 +1,44 @@
+# Block the include-only files.
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase ${WordPress.baseUrl.path}
+RewriteRule ^wp-admin/includes/ - [F,L]
+RewriteRule !^wp-includes/ - [S=3]
+RewriteRule ^wp-includes/[^/]+\.php$ - [F,L]
+RewriteRule ^wp-includes/js/tinymce/langs/.+\.php - [F,L]
+RewriteRule ^wp-includes/theme-compat/ - [F,L]
+</IfModule>
+
+# Don't allow any random POST from nowhere
+<IfModule mod_rewrite.c>
+RewriteCond %{REQUEST_METHOD} POST
+RewriteCond %{REQUEST_URI} ^.*\.php(.*)$
+RewriteCond %{HTTP_REFERER} ^$ [NC,OR]
+RewriteCond %{HTTP_USER_AGENT} ^$
+RewriteRule .* http://127.0.0.1 [L]
+</IfModule>
+
+# Block access to .htaccess
+<Files .htaccess>
+    order allow,deny
+    deny from all
+</Files>
+
+# Block access to wp-config
+<Files wp-config.php>
+    order allow,deny
+    deny from all
+</Files>
+
+# Block XML-RPC access
+<IfModule mod_alias.c>
+    RedirectMatch 403 /(.*)/xmlrpc\.php$
+</IfModule>
+
+# Don't show off server
+ServerSignature Off
+
+# Don't send such big requests
+LimitRequestBody 10240000
+
+# BEGIN WordPress
