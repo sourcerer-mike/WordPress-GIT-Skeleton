@@ -6,7 +6,7 @@
     <if>
         <available file="${phing.dir}/PHing.ini"/>
         <then>
-            <property file="${phing.dir}/PHing.ini"/>
+            <property file="${phing.dir}/PHing.ini" override="true"/>
         </then>
     </if>
     <if>
@@ -23,7 +23,12 @@
     <target name="WordPress.prepare" hidden="true" depends="prepare">
         <propertyprompt promptText="What is the Download URL (zip)?" propertyName="WordPress.URL"
                         useExistingValue="true"/>
+
         <php returnProperty="WordPress.URL.BaseName" expression="basename('${WordPress.URL}')" level="debug"/>
+
+        <php returnProperty="WordPress.firewallPlugin.basename"
+             expression="basename('${WordPress.firewallPlugin}')"
+             level="debug"/>
 
         <property name="WordPress.cacheDir" value="${application.cacheDir}/WordPress"/>
         <mkdir dir="${WordPress.cacheDir}"/>
@@ -86,6 +91,7 @@
     <target name="WordPress.secure" depends="WordPress.prepare">
         <delete file="${WordPress.destinationDir}/wp-sample-config.php" quiet="true"/>
 
+        <echo message="Set permissions for directories and files ..."/>
         <echo message="Set directory permission to 2755" level="verbose"/>
         <exec command="find ${WordPress.destinationDir} -type d -exec chmod 2755 {} \;" />
 
@@ -101,5 +107,33 @@
                 <expandproperties />
             </filterchain>
         </copy>
+
+        <copy file="${phing.dir}/PHing/WordPress.wp-config.php" tofile="${WordPress.destinationDir}/wp-config.php">
+            <filterchain>
+                <expandproperties />
+            </filterchain>
+        </copy>
+
+        <if>
+            <isset property="WordPress.firewallPlugin"/>
+            <then>
+                <if>
+                    <not>
+                        <available file="${WordPress.cacheDir}/${WordPress.firewallPlugin.basename}"/>
+                    </not>
+                    <then>
+                        <httpget dir="${WordPress.cacheDir}"
+                                 url="${WordPress.firewallPlugin}"/>
+                    </then>
+                </if>
+
+                <unzip todir="${WordPress.destinationDir}/wp-content/plugins"
+                       file="${WordPress.cacheDir}/${WordPress.firewallPlugin.basename}"/>
+            </then>
+            <else>
+                <echo message="No Firewall-Plugin choosen! Please remember installing one to harden WordPress."
+                      level="warning"/>
+            </else>
+        </if>
     </target>
 </project>
