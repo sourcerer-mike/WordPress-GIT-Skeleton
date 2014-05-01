@@ -5,10 +5,10 @@ git clone --recursive https://github.com/sourcerer-mike/WordPress-GIT-Skeleton.g
 cd YOUR_DIRECTORY
 ```
 
-- Install WP
-- Run the init script
+Install WordPress by using PHing
 
 ```
-php init.php
-``` 
+phing -f dev/PHing.xml
+```
 
+You can change it's behaviour by editing dev/PHing.ini or create PHing.local.ini which overrides the settings.
