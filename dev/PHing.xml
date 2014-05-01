@@ -23,7 +23,7 @@
     <target name="WordPress.prepare" hidden="true" depends="prepare">
         <propertyprompt promptText="What is the Download URL (zip)?" propertyName="WordPress.URL"
                         useExistingValue="true"/>
-        <php returnProperty="WordPress.URL.BaseName" expression="basename('${WordPress.URL}')"/>
+        <php returnProperty="WordPress.URL.BaseName" expression="basename('${WordPress.URL}')" level="debug"/>
 
         <property name="WordPress.cacheDir" value="${application.cacheDir}/WordPress"/>
         <mkdir dir="${WordPress.cacheDir}"/>
@@ -31,6 +31,8 @@
 
         <property name="WordPress.destinationDir" value="${project.basedir}/WordPress"/>
         <mkdir dir="${WordPress.destinationDir}"/>
+
+        <property name="WordPress.baseUrl.path" value="/"/>
     </target>
 
     <target name="WordPress" depends="WordPress.prepare">
@@ -68,6 +70,9 @@
                 <exclude name="wp-content/plugins/hello.php"/>
             </fileset>
         </copy>
+
+        <!-- Hardening WordPress -->
+        <phingcall target="WordPress.secure" />
     </target>
 
     <target name="WordPress.clear" depends="WordPress.prepare">
@@ -76,5 +81,25 @@
         <input message="Want to delete the whole WordPress" propertyName="WordPress.deleteAll" validArgs="y,n"
                defaultValue="n" promptChar="?"/>
         <delete dir="${WordPress.destinationDir}"/>
+    </target>
+
+    <target name="WordPress.secure" depends="WordPress.prepare">
+        <delete file="${WordPress.destinationDir}/wp-sample-config.php" quiet="true"/>
+
+        <echo message="Set directory permission to 2755" level="verbose"/>
+        <exec command="find ${WordPress.destinationDir} -type d -exec chmod 2755 {} \;" />
+
+        <echo message="Set file permission to 644" level="verbose"/>
+        <exec command="find ${WordPress.destinationDir} -type f -exec chmod 644 {} \;" />
+
+        <chmod mode="1750" file="${WordPress.destinationDir}/wp-admin" />
+        <chmod mode="1750" file="${WordPress.destinationDir}/wp-includes" />
+        <chmod mode="0770" file="${WordPress.destinationDir}/wp-content" />
+
+        <copy file="${phing.dir}/PHing/WordPress.htaccess" tofile="${WordPress.destinationDir}/.htaccess">
+            <filterchain>
+                <expandproperties />
+            </filterchain>
+        </copy>
     </target>
 </project>
