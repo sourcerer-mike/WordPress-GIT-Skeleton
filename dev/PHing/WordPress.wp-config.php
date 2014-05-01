@@ -16,6 +16,9 @@
 // do not allow editing files in the backend
 define('DISALLOW_FILE_EDIT', true);
 
+// no automatic updates that might destroy the page
+define('AUTOMATIC_UPDATER_DISABLED', true);
+
 /**  MySQL Einstellungen - diese Angaben bekommst du von deinem Webhoster. */
 /**  Ersetze database_name_here mit dem Namen der Datenbank, die du verwenden m�chtest. */
 define('DB_NAME', '${WordPress.config.databaseName}');
