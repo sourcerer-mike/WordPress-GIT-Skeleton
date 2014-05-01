@@ -1,40 +1,38 @@
 <?xml version="1.0"?>
-<project name="WordPress Instance" default="WordPress" basedir="." description="Get WordPress">
+<project name="WordPress Instance" default="build" basedir="." description="Get WordPress">
 
     <tstamp />
 
-    <property name="application.cacheDir" value="var/cache/PHing"/>
-
     <if>
-        <available file="${phing.dir}/PHing.ini"/>
+        <available file="${phing.dir}/build.ini"/>
         <then>
-            <property file="${phing.dir}/PHing.ini" override="true"/>
+            <property file="${phing.dir}/build.ini" override="true"/>
         </then>
     </if>
     <if>
-        <available file="${phing.dir}/PHing.local.ini"/>
+        <available file="${phing.dir}/build.local.ini"/>
         <then>
-            <property file="${phing.dir}/PHing.local.ini" override="true"/>
+            <property file="${phing.dir}/build.local.ini" override="true"/>
         </then>
     </if>
 
-    <target name="prepare">
+    <property name="WordPress.cacheDir" value="${application.cacheDir}/WordPress"/>
+
+    <target name="prepare" hidden="true" description="Init">
         <exec command="whoami" returnProperty="user.name" />
 
-        <mkdir dir="${application.cacheDir}" mode="755"/>
-    </target>
+        <mkdir dir="${WordPress.cacheDir}" mode="755"/>
 
-    <target name="WordPress.prepare" hidden="true" depends="prepare">
         <propertyprompt promptText="What is the Download URL (zip)?" propertyName="WordPress.URL"
                         useExistingValue="true"/>
 
         <php returnProperty="WordPress.URL.BaseName" expression="basename('${WordPress.URL}')" level="debug"/>
 
-        <php returnProperty="WordPress.firewallPlugin.basename"
-             expression="basename('${WordPress.firewallPlugin}')"
+        <php returnProperty="WordPress.plugin.firewall.basename"
+             expression="basename('${WordPress.plugin.firewall}')"
              level="debug"/>
 
-        <property name="WordPress.cacheDir" value="${application.cacheDir}/WordPress"/>
+        <property name="WordPress.cacheDir" value="${WordPress.cacheDir}"/>
         <mkdir dir="${WordPress.cacheDir}"/>
         <property name="WordPress.cacheFile" value="${WordPress.cacheDir}/${WordPress.URL.BaseName}"/>
 
@@ -59,7 +57,7 @@
         <property name="WordPress.config.databaseHost" value="localhost" />
     </target>
 
-    <target name="WordPress" depends="WordPress.prepare">
+    <target name="build" depends="prepare">
 
         <!-- Download WordPress -->
         <if>
@@ -97,18 +95,20 @@
         <delete dir="${WordPress.cacheDir}/wordpress" includeemptydirs="true" />
 
         <!-- Hardening WordPress -->
-        <phingcall target="WordPress.secure" />
+        <phingcall target="secure"/>
+
+        <echo message="Remember to call 'migrate' after installing!" level="warning"/>
     </target>
 
-    <target name="WordPress.clear" depends="WordPress.prepare">
-        <delete dir="${WordPress.cacheDir}" />
+    <target name="clear" description="Clean up the deployed WordPress" depends="prepare">
+    <delete dir="${WordPress.cacheDir}" />
 
         <input message="Want to delete the whole WordPress" propertyName="WordPress.deleteAll" validArgs="y,n"
                defaultValue="n" promptChar="?"/>
         <delete dir="${WordPress.destinationDir}"/>
     </target>
 
-    <target name="WordPress.secure" depends="WordPress.prepare">
+    <target name="secure" description="Make WordPress a bit safer" depends="prepare">
         <delete file="${WordPress.destinationDir}/wp-sample-config.php" quiet="true"/>
 
         <echo message="Set permissions for directories and files ..."/>
@@ -122,33 +122,55 @@
         <chmod mode="1750" file="${WordPress.destinationDir}/wp-includes" />
         <chmod mode="0750" file="${WordPress.destinationDir}/wp-content" />
 
-        <copy file="${phing.dir}/PHing/WordPress.htaccess" tofile="${WordPress.destinationDir}/.htaccess">
-            <filterchain>
+        <copy file="${phing.dir}/WordPress/WordPress.htaccess" tofile="${WordPress.destinationDir}/.htaccess">
+        <filterchain>
                 <expandproperties />
             </filterchain>
         </copy>
 
-        <copy file="${phing.dir}/PHing/WordPress.wp-config.php" tofile="${WordPress.destinationDir}/wp-config.php">
-            <filterchain>
+        <copy file="${phing.dir}/WordPress/WordPress.wp-config.php" tofile="${WordPress.destinationDir}/wp-config.php">
+        <filterchain>
                 <expandproperties />
             </filterchain>
         </copy>
 
+        <phingcall target="plugin-firewall" />
+    </target>
+
+    <target name="plugins" depends="prepare">
+        <foreach param="WordPress.plugins" absparam="WordPress.plugin.current" target="install-plugin">
+            <fileset dir="${phing.dir}/WordPress/plugins/">
+                <include name="*" />
+                <exclude name="*/*" />
+            </fileset>
+        </foreach>
+        <delete file="${WordPress.destinationDir}/wp-content/plugins/plugins" />
+    </target>
+
+    <target name="install-plugin" description="Installing plugin" depends="prepare">
+        <php returnProperty="WordPress.plugin.current.basename"
+             expression="basename('${WordPress.plugin.current}')"
+             level="debug"/>
+        <symlink link="${WordPress.destinationDir}/wp-content/plugins/${WordPress.plugin.current.basename}"
+                 target="${WordPress.plugin.current}" />
+    </target>
+
+    <target name="plugin-firewall" depends="prepare" hidden="true">
         <if>
-            <isset property="WordPress.firewallPlugin"/>
+            <isset property="WordPress.plugin.firewall"/>
             <then>
                 <if>
                     <not>
-                        <available file="${WordPress.cacheDir}/${WordPress.firewallPlugin.basename}"/>
+                        <available file="${WordPress.cacheDir}/${WordPress.plugin.firewall.basename}"/>
                     </not>
                     <then>
                         <httpget dir="${WordPress.cacheDir}"
-                                 url="${WordPress.firewallPlugin}"/>
+                                 url="${WordPress.plugin.firewall}"/>
                     </then>
                 </if>
 
                 <unzip todir="${WordPress.destinationDir}/wp-content/plugins"
-                       file="${WordPress.cacheDir}/${WordPress.firewallPlugin.basename}"/>
+                       file="${WordPress.cacheDir}/${WordPress.plugin.firewall.basename}"/>
             </then>
             <else>
                 <echo message="No Firewall-Plugin choosen! Please remember installing one to harden WordPress."
@@ -157,15 +179,19 @@
         </if>
     </target>
 
-    <target name="WordPress.migrate" description="WordPress Database Migration" depends="WordPress.prepare">
+    <target name="migrate" description="WordPress Database Migration" depends="prepare">
+        <exec
+                command="${progs.mysql} -h${WordPress.config.databaseHost} -u${WordPress.config.databaseUser} -p${WordPress.config.databasePass} ${WordPress.config.databaseName} &lt; ${phing.dir}/changelog.sql"
+                dir="${project.basedir}"
+                checkreturn="true"/>
 
         <property name="WordPress.dbdeploy.deployfile"
-                  value="${application.cacheDir}/WordPress/deploy-${DSTAMP}${TSTAMP}.sql" />
+                  value="${WordPress.cacheDir}/deploy-${DSTAMP}${TSTAMP}.sql"/>
 
         <dbdeploy url="mysql:host=${WordPress.config.databaseHost};dbname=${WordPress.config.databaseName}"
                   userid="${WordPress.config.databaseUser}"
                   password="${WordPress.config.databasePass}"
-                  dir="${project.basedir}/etc/PHing/WordPress/dbdeltas"
+                  dir="${phing.dir}/WordPress/dbdeltas"
                   outputfile="${WordPress.dbdeploy.deployfile}"
                   appliedBy="${user.name}"/>
 
