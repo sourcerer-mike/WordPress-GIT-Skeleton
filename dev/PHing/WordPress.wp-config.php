@@ -13,18 +13,21 @@
  * @package WordPress
  */
 
+// do not allow editing files in the backend
+define('DISALLOW_FILE_EDIT', true);
+
 /**  MySQL Einstellungen - diese Angaben bekommst du von deinem Webhoster. */
 /**  Ersetze database_name_here mit dem Namen der Datenbank, die du verwenden m�chtest. */
-define('DB_NAME', 'database_name_here');
+define('DB_NAME', '${WordPress.config.databaseName}');
 
 /** Ersetze username_here mit deinem MySQL-Datenbank-Benutzernamen */
-define('DB_USER', 'username_here');
+define('DB_USER', '${WordPress.config.databaseUser}');
 
 /** Ersetze password_here mit deinem MySQL-Passwort */
-define('DB_PASSWORD', 'password_here');
+define('DB_PASSWORD', '${WordPress.config.databasePass}');
 
 /** Ersetze localhost mit der MySQL-Serveradresse */
-define('DB_HOST', 'localhost');
+define('DB_HOST', '${WordPress.config.databaseHost}');
 
 /** Der Datenbankzeichensatz der beim Erstellen der Datenbanktabellen verwendet werden soll */
 define('DB_CHARSET', 'utf8');
@@ -41,14 +44,14 @@ define('DB_COLLATE', '');
  *
  * @seit 2.6.0
  */
-define('AUTH_KEY',         '${WordPress.uniquePhrase}');
-define('SECURE_AUTH_KEY',  '${WordPress.uniquePhrase}');
-define('LOGGED_IN_KEY',    '${WordPress.uniquePhrase}');
-define('NONCE_KEY',        '${WordPress.uniquePhrase}');
-define('AUTH_SALT',        '${WordPress.uniquePhrase}');
-define('SECURE_AUTH_SALT', '${WordPress.uniquePhrase}');
-define('LOGGED_IN_SALT',   '${WordPress.uniquePhrase}');
-define('NONCE_SALT',       '${WordPress.uniquePhrase}');
+define('AUTH_KEY',         '${WordPress.config.uniquePhrase}');
+define('SECURE_AUTH_KEY',  '${WordPress.config.uniquePhrase}');
+define('LOGGED_IN_KEY',    '${WordPress.config.uniquePhrase}');
+define('NONCE_KEY',        '${WordPress.config.uniquePhrase}');
+define('AUTH_SALT',        '${WordPress.config.uniquePhrase}');
+define('SECURE_AUTH_SALT', '${WordPress.config.uniquePhrase}');
+define('LOGGED_IN_SALT',   '${WordPress.config.uniquePhrase}');
+define('NONCE_SALT',       '${WordPress.config.uniquePhrase}');
 
 /**#@-*/
 
@@ -58,7 +61,7 @@ define('NONCE_SALT',       '${WordPress.uniquePhrase}');
  *  Wenn du verschiedene Pr�fixe benutzt, kannst du innerhalb einer Datenbank
  *  verschiedene WordPress-Installationen betreiben. Nur Zahlen, Buchstaben und Unterstriche bitte!
  */
-$table_prefix  = 'wp_';
+$table_prefix  = '${WordPress.config.tablePrefix}';
 
 /**
  * WordPress Sprachdatei

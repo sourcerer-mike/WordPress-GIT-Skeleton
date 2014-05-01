@@ -38,6 +38,21 @@
         <mkdir dir="${WordPress.destinationDir}"/>
 
         <property name="WordPress.baseUrl.path" value="/"/>
+
+        <property name="WordPress.config.tablePrefix" value="wp_" />
+
+        <if>
+            <not>
+                <isset property="WordPress.config.uniquePhrase" />
+            </not>
+            <then>
+                <php expression="md5(rand())" returnProperty="WordPress.config.uniquePhrase" level="debug"/>
+            </then>
+        </if>
+        <property name="WordPress.config.databaseName" value="wordpress" />
+        <property name="WordPress.config.databaseUser" value="wordpress" />
+        <property name="WordPress.config.databasePass" value="" />
+        <property name="WordPress.config.databaseHost" value="localhost" />
     </target>
 
     <target name="WordPress" depends="WordPress.prepare">
